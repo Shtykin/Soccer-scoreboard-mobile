@@ -1,4 +1,4 @@
-package ru.shtykin.soccerscoreboard.ui.theme
+package ru.shtykin.soccerscoreboard.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build

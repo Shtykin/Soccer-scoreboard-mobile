@@ -1,4 +1,4 @@
-package ru.shtykin.soccerscoreboard.ui.theme
+package ru.shtykin.soccerscoreboard.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
