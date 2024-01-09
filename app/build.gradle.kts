@@ -88,6 +88,8 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.44")
 
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.22"))
+
+    implementation(project(":bluetooth"))
 }
 
 kapt {

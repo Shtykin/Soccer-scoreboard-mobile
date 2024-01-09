@@ -1,14 +1,31 @@
 package ru.shtykin.soccerscoreboard.presentation
 
+import android.Manifest
+import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.shtykin.bbs_mobile.navigation.AppNavGraph
@@ -21,8 +38,14 @@ import ru.shtykin.soccerscoreboard.presentation.ui.theme.SoccerScoreboardTheme
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
+
+    private lateinit var btLauncher: ActivityResultLauncher<Intent>
+    private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        registerBtLauncher()
+        checkPermissions()
         setContent {
             val navHostController = rememberNavController()
             val uiState by viewModel.uiState
@@ -38,6 +61,16 @@ class MainActivity : ComponentActivity() {
                         settingsScreenContent = {
                             SettingsScreen(
                                 uiState = uiState,
+                                onBluetoothOnClick = {
+                                    btLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+                                },
+                                onGetDevicesClick = {
+                                    viewModel.getDevices()
+                                },
+                                onSearchClick = {
+                                    registerBroadcastReceiver()
+                                    viewModel.startDiscovery()
+                                }
                             )
                         },
                         gameScreenContent = {
@@ -51,6 +84,111 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     )
+                }
+            }
+        }
+    }
+
+    private fun registerBtLauncher() {
+        btLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                // bt on
+            } else {
+                // bt off
+            }
+        }
+    }
+
+
+    private fun registerPermissionLauncher() {
+        pLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) {results ->
+            results.forEach {
+                if (!it.value) {
+                    Toast.makeText(this, "Необходимы все разрешения", Toast.LENGTH_LONG).show()
+                    openAppSettings()
+                }
+            }
+        }
+    }
+
+    private fun launchBtPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            pLauncher.launch(arrayOf(
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ))
+        } else {
+            pLauncher.launch(arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ))
+        }
+    }
+
+    private fun checkPermissions() {
+        if (!checkBtPermissions()) {
+            registerPermissionLauncher()
+            launchBtPermissions()
+        }
+    }
+
+    private fun checkBtPermissions(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    private fun openAppSettings() {
+        val settingsIntent = Intent().also {
+            it.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+            it.addCategory(Intent.CATEGORY_DEFAULT)
+            it.data = Uri.parse("package:$packageName")
+            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            it.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+            it.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+        }
+        startActivity(settingsIntent)
+    }
+
+    private fun registerBroadcastReceiver() {
+        val filter1 = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        val filter2 = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
+        val filter3 = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        registerReceiver(bReceiver, filter1)
+        registerReceiver(bReceiver, filter2)
+        registerReceiver(bReceiver, filter3)
+    }
+
+    private val bReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                BluetoothDevice.ACTION_FOUND -> {
+                    val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+                    try {
+                        Log.e("DEBUG1", "device -> ${device?.name}")
+                    } catch (e: Exception) {
+                        TODO("Not yet implemented")
+                    }
+                }
+                BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
+                    Log.e("DEBUG1", "ACTION_BOND_STATE_CHANGED")
+                }
+                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                    Log.e("DEBUG1", "ACTION_DISCOVERY_FINISHED")
                 }
             }
         }

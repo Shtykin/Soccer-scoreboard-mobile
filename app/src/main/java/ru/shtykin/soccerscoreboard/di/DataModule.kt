@@ -1,4 +1,4 @@
-package ru.shtykin.testappchat.di
+package ru.shtykin.soccerscoreboard.di
 
 import dagger.Module
 import dagger.Provides
