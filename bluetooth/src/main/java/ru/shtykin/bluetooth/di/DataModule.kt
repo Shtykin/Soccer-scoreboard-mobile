@@ -21,8 +21,8 @@ class DataModule {
 
     @Provides
     @Singleton
-    fun provideRepository(mapper: Mapper, bluetoothAdapter: BluetoothAdapter): Repository {
-        return RepositoryImpl(mapper, bluetoothAdapter)
+    fun provideRepository(mapper: Mapper, @ApplicationContext appContext: Context, bluetoothAdapter: BluetoothAdapter): Repository {
+        return RepositoryImpl(mapper, appContext, bluetoothAdapter)
     }
 
     @Provides

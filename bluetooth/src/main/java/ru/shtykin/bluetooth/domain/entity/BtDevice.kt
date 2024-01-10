@@ -1,6 +1,6 @@
 package ru.shtykin.bluetooth.domain.entity
 
-data class BTDevice(
+data class BtDevice(
     val name: String,
     val mac: String
 )

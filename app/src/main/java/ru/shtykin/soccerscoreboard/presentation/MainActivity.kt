@@ -3,17 +3,12 @@ package ru.shtykin.soccerscoreboard.presentation
 import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -64,11 +59,10 @@ class MainActivity : ComponentActivity() {
                                 onBluetoothOnClick = {
                                     btLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
                                 },
-                                onGetDevicesClick = {
-                                    viewModel.getDevices()
+                                onBoundDeviceClick = {
+                                    viewModel.boundDevice(it)
                                 },
                                 onSearchClick = {
-                                    registerBroadcastReceiver()
                                     viewModel.startDiscovery()
                                 }
                             )
@@ -108,7 +102,7 @@ class MainActivity : ComponentActivity() {
         ) {results ->
             results.forEach {
                 if (!it.value) {
-                    Toast.makeText(this, "Необходимы все разрешения", Toast.LENGTH_LONG).show()
+                    showToast("Необходимы все разрешения")
                     openAppSettings()
                 }
             }
@@ -164,33 +158,8 @@ class MainActivity : ComponentActivity() {
         startActivity(settingsIntent)
     }
 
-    private fun registerBroadcastReceiver() {
-        val filter1 = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        val filter2 = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
-        val filter3 = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-        registerReceiver(bReceiver, filter1)
-        registerReceiver(bReceiver, filter2)
-        registerReceiver(bReceiver, filter3)
+    private fun showToast(msg: String) {
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
 
-    private val bReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            when (intent?.action) {
-                BluetoothDevice.ACTION_FOUND -> {
-                    val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-                    try {
-                        Log.e("DEBUG1", "device -> ${device?.name}")
-                    } catch (e: Exception) {
-                        TODO("Not yet implemented")
-                    }
-                }
-                BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
-                    Log.e("DEBUG1", "ACTION_BOND_STATE_CHANGED")
-                }
-                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
-                    Log.e("DEBUG1", "ACTION_DISCOVERY_FINISHED")
-                }
-            }
-        }
-    }
 }
