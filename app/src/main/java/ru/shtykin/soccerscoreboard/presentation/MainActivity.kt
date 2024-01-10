@@ -15,16 +15,28 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.shtykin.bbs_mobile.navigation.AppNavGraph
 import ru.shtykin.bbs_mobile.navigation.Screen
+import ru.shtykin.soccerscoreboard.presentation.screens.bluetooth.BluetoothScreen
 import ru.shtykin.soccerscoreboard.presentation.screens.developer.DeveloperScreen
 import ru.shtykin.soccerscoreboard.presentation.screens.game.GameScreen
 import ru.shtykin.soccerscoreboard.presentation.screens.settings.SettingsScreen
@@ -37,6 +49,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var btLauncher: ActivityResultLauncher<Intent>
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         registerBtLauncher()
@@ -45,48 +58,101 @@ class MainActivity : ComponentActivity() {
             val navHostController = rememberNavController()
             val uiState by viewModel.uiState
             val startScreenRoute = Screen.Settings.route
+//            var currentItem: MenuItem = MenuItem.Settings
             SoccerScoreboardTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavGraph(
-                        startScreenRoute = startScreenRoute,
-                        navHostController = navHostController,
-                        settingsScreenContent = {
-                            SettingsScreen(
-                                uiState = uiState,
-                                onBluetoothOnClick = {
-                                    btLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-                                },
-                                onBoundDeviceClick = {
-                                    viewModel.boundDevice(it)
-                                },
-                                onConnectDeviceClick = {
-                                    viewModel.connectDevice(it)
-                                },
-                                onDisconnectClick = {
-                                    viewModel.disconnectDevice()
-                                },
-                                onSearchClick = {
-                                    viewModel.startDiscovery()
-                                },
-                                onSendMessageClick = {
-                                    viewModel.sendMessage(it)
-                                }
-                            )
-                        },
-                        gameScreenContent = {
-                            GameScreen(
-                                uiState = uiState,
-                            )
-                        },
-                        developerScreenContent = {
-                            DeveloperScreen(
-                                uiState = uiState,
-                            )
-                        }
+                    var currentItem: MenuItem by remember { mutableStateOf(MenuItem.Settings) }
+                    val itemList = listOf(
+                        MenuItem.Settings,
+                        MenuItem.Game,
+                        MenuItem.Developer
                     )
+                    Column {
+                        PrimaryTabRow(selectedTabIndex = currentItem.index) {
+                            itemList.forEach { item ->
+                                Tab(
+                                    selected = item == currentItem,
+                                    onClick = {
+                                        if (item != currentItem) {
+                                            currentItem = item
+                                            navHostController.navigate(item.route) {
+                                                popUpTo(0)
+                                            }
+                                        }
+                                    },
+                                    text = {
+                                        Text(
+                                            text = item.title,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = item.icon,
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                        AppNavGraph(
+                            startScreenRoute = startScreenRoute,
+                            navHostController = navHostController,
+                            settingsScreenContent = {
+                                SettingsScreen(
+                                    uiState = uiState,
+                                    onBluetoothClick = {
+                                        navHostController.navigate(Screen.Bluetooth.route) {
+//                                            popUpTo(Screen.Settings.route) {
+//                                                inclusive = true
+//                                            }
+                                        }
+                                    },
+                                    onBluetoothOnClick = {
+                                        btLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+                                    },
+                                    onBoundDeviceClick = {
+                                        viewModel.boundDevice(it)
+                                    },
+                                    onConnectDeviceClick = {
+                                        viewModel.connectDevice(it)
+                                    },
+                                    onDisconnectClick = {
+                                        viewModel.disconnectDevice()
+                                    },
+                                    onSearchClick = {
+                                        viewModel.startDiscovery()
+                                    },
+                                    onSendMessageClick = {
+                                        viewModel.sendMessage(it)
+                                    },
+                                    onColorPickedTeam = { team, color ->
+                                        viewModel.colorPickedTeam(team, color)
+                                    },
+                                )
+                            },
+                            gameScreenContent = {
+                                GameScreen(
+                                    uiState = uiState,
+                                )
+                            },
+                            developerScreenContent = {
+                                DeveloperScreen(
+                                    uiState = uiState,
+                                )
+                            },
+                            bluetoothScreenContent = {
+                                BluetoothScreen(
+                                    uiState = uiState
+                                )
+                            }
+                        )
+                    }
+
+
                 }
             }
         }
