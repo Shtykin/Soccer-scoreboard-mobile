@@ -62,8 +62,17 @@ class MainActivity : ComponentActivity() {
                                 onBoundDeviceClick = {
                                     viewModel.boundDevice(it)
                                 },
+                                onConnectDeviceClick = {
+                                    viewModel.connectDevice(it)
+                                },
+                                onDisconnectClick = {
+                                    viewModel.disconnectDevice()
+                                },
                                 onSearchClick = {
                                     viewModel.startDiscovery()
+                                },
+                                onSendMessageClick = {
+                                    viewModel.sendMessage(it)
                                 }
                             )
                         },
@@ -99,7 +108,7 @@ class MainActivity : ComponentActivity() {
     private fun registerPermissionLauncher() {
         pLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
-        ) {results ->
+        ) { results ->
             results.forEach {
                 if (!it.value) {
                     showToast("Необходимы все разрешения")
@@ -111,14 +120,18 @@ class MainActivity : ComponentActivity() {
 
     private fun launchBtPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            pLauncher.launch(arrayOf(
-                Manifest.permission.BLUETOOTH_CONNECT,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ))
+            pLauncher.launch(
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            )
         } else {
-            pLauncher.launch(arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ))
+            pLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            )
         }
     }
 

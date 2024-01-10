@@ -7,9 +7,12 @@ import dagger.hilt.android.components.ViewModelComponent
 import ru.shtykin.bluetooth.Repository
 import ru.shtykin.bluetooth.domain.usecase.BoundBluetoothDeviceUseCase
 import ru.shtykin.bluetooth.domain.usecase.CheckBluetoothStateUseCase
+import ru.shtykin.bluetooth.domain.usecase.ConnectBtDeviceUseCase
+import ru.shtykin.bluetooth.domain.usecase.DisconnectBtDeviceUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetBluetoothDeviceFlowUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetBoundedBluetoothDevicesUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetIsBluetoothDiscoveringFlowUseCase
+import ru.shtykin.bluetooth.domain.usecase.SendMessageUseCase
 import ru.shtykin.bluetooth.domain.usecase.StartDiscoveryUseCase
 
 @Module
@@ -38,4 +41,16 @@ class DomainModule {
     @Provides
     fun provideStartDiscoveryUseCase(repository: Repository): StartDiscoveryUseCase =
         StartDiscoveryUseCase(repository)
+
+    @Provides
+    fun provideConnectBtDeviceUseCase(repository: Repository): ConnectBtDeviceUseCase =
+        ConnectBtDeviceUseCase(repository)
+
+    @Provides
+    fun provideDisconnectBtDeviceUseCase(repository: Repository): DisconnectBtDeviceUseCase =
+        DisconnectBtDeviceUseCase(repository)
+
+    @Provides
+    fun provideSendMessageUseCase(repository: Repository): SendMessageUseCase =
+        SendMessageUseCase(repository)
 }

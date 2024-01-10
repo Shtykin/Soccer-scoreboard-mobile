@@ -18,7 +18,10 @@ fun SettingsScreen(
     uiState: ScreenState,
     onBluetoothOnClick: (() -> Unit)?,
     onBoundDeviceClick: ((BtDevice) -> Unit)?,
+    onConnectDeviceClick: ((BtDevice) -> Unit)?,
+    onDisconnectClick: (() -> Unit)?,
     onSearchClick: (() -> Unit)?,
+    onSendMessageClick: ((String) -> Unit)?,
 ) {
 
     val boundedDevices = (uiState as? ScreenState.SettingsScreen)?.boundedDevices ?: emptyList()
@@ -36,15 +39,22 @@ fun SettingsScreen(
         Button(onClick = { onSearchClick?.invoke() }) {
             Text("Search")
         }
+        Button(onClick = { onDisconnectClick?.invoke() }) {
+            Text("Disconnect")
+        }
+        Button(onClick = { onSendMessageClick?.invoke("H") }) {
+            Text(text = "Send")
+        }
         LazyColumn {
             items(boundedDevices) {
                 Text(
                     it.name,
+                    modifier = Modifier.clickable { onConnectDeviceClick?.invoke(it) },
                     color = Color.Green
                 )
             }
         }
-        if (isDiscovering) CircularProgressIndicator()
+
         LazyColumn {
             items(onlineDevices) {
                 Text(
@@ -54,6 +64,7 @@ fun SettingsScreen(
                 )
             }
         }
+        if (isDiscovering) CircularProgressIndicator()
 
     }
 

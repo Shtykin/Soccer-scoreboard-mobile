@@ -14,4 +14,9 @@ interface Repository {
     suspend fun stopDeviceFlow()
     fun getBluetoothDeviceFlow() : Flow<BtDevice>
     fun getIsBluetoothDiscoveringFlow() : Flow<Unit?>
+    fun btConnect(btDevice: BtDevice): Boolean
+    fun btDisconnect()
+    fun sendMsg(msg: String)
+
+
 }

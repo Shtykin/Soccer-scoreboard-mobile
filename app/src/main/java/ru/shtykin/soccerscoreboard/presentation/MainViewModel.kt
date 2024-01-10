@@ -12,9 +12,12 @@ import kotlinx.coroutines.withContext
 import ru.shtykin.bluetooth.domain.entity.BtDevice
 import ru.shtykin.bluetooth.domain.usecase.BoundBluetoothDeviceUseCase
 import ru.shtykin.bluetooth.domain.usecase.CheckBluetoothStateUseCase
+import ru.shtykin.bluetooth.domain.usecase.ConnectBtDeviceUseCase
+import ru.shtykin.bluetooth.domain.usecase.DisconnectBtDeviceUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetBluetoothDeviceFlowUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetBoundedBluetoothDevicesUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetIsBluetoothDiscoveringFlowUseCase
+import ru.shtykin.bluetooth.domain.usecase.SendMessageUseCase
 import ru.shtykin.bluetooth.domain.usecase.StartDiscoveryUseCase
 import ru.shtykin.bluetooth.extension.filterBoundedDevice
 import ru.shtykin.soccerscoreboard.presentation.state.ScreenState
@@ -28,7 +31,10 @@ class MainViewModel @Inject constructor(
     private val startDiscoveryUseCase: StartDiscoveryUseCase,
     private val getBluetoothDeviceFlowUseCase: GetBluetoothDeviceFlowUseCase,
     private val getIsBluetoothDiscoveringFlowUseCase: GetIsBluetoothDiscoveringFlowUseCase,
-    private val boundBluetoothDeviceUseCase: BoundBluetoothDeviceUseCase
+    private val boundBluetoothDeviceUseCase: BoundBluetoothDeviceUseCase,
+    private val connectBtDeviceUseCase: ConnectBtDeviceUseCase,
+    private val disconnectBtDeviceUseCase: DisconnectBtDeviceUseCase,
+    private val sendMessageUseCase: SendMessageUseCase
 ) : ViewModel() {
 
     private val _uiState =
@@ -105,6 +111,28 @@ class MainViewModel @Inject constructor(
         }
 
     }
+
+    fun connectDevice(btDevice: BtDevice) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                connectBtDeviceUseCase.execute(btDevice)
+            } catch (e: Exception) {
+                Log.e("DEBUG1", "ex -> ${e.message}")
+            }
+        }
+    }
+
+    fun disconnectDevice() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                disconnectBtDeviceUseCase.execute()
+            } catch (e: Exception) {
+                Log.e("DEBUG1", "ex -> ${e.message}")
+            }
+        }
+    }
+
+    fun sendMessage(text: String) = sendMessageUseCase.execute(text)
 
     private fun getBondedDevices() = getBoundedBluetoothDevicesUseCase.execute()
     private fun getBtDevicesFlow() = getBluetoothDeviceFlowUseCase.execute()
