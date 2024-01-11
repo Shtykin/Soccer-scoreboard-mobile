@@ -93,6 +93,9 @@ dependencies {
     //color picker
     implementation("io.mhssn:colorpicker:1.0.0")
 
+    //fonts
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.5.4")
+
     implementation(project(":bluetooth"))
 }
 

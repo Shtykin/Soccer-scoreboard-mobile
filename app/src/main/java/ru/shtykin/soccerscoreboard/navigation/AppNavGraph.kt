@@ -12,7 +12,6 @@ fun AppNavGraph(
     settingsScreenContent: @Composable () -> Unit,
     gameScreenContent: @Composable () -> Unit,
     developerScreenContent: @Composable () -> Unit,
-    bluetoothScreenContent: @Composable () -> Unit,
 ) {
     NavHost(
         navController = navHostController,
@@ -26,9 +25,6 @@ fun AppNavGraph(
         }
         composable(Screen.Developer.route) {
             developerScreenContent()
-        }
-        composable(Screen.Bluetooth.route) {
-            bluetoothScreenContent()
         }
     }
 

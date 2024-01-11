@@ -67,13 +67,11 @@ import ru.shtykin.soccerscoreboard.presentation.state.ScreenState
 @Composable
 fun SettingsScreen(
     uiState: ScreenState,
-    onBluetoothClick: (() -> Unit)?,
     onBluetoothOnClick: (() -> Unit)?,
     onBoundDeviceClick: ((BtDevice) -> Unit)?,
     onConnectDeviceClick: ((BtDevice) -> Unit)?,
     onDisconnectClick: (() -> Unit)?,
     onSearchClick: (() -> Unit)?,
-    onSendMessageClick: ((String) -> Unit)?,
     onColorPickedTeam: ((Team, Color) -> Unit)?,
     onTimeChanged: ((Int) -> Unit)?,
     onTeamNameChanged: ((Team, String) -> Unit)?,

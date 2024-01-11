@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -29,10 +30,16 @@ class BluetoothBroadcastReceiver : BroadcastReceiver() {
                 }
             }
             BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
-                goAsync { repository.stopDeviceFlow() }
+                goAsync {
+                    repository.stopDeviceFlow()
+                    repository.checkAndEmitBtState()
+                }
             }
             BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
                 goAsync { repository.stopDeviceFlow() }
+            }
+            BluetoothAdapter.ACTION_STATE_CHANGED -> {
+                goAsync { repository.checkAndEmitBtState() }
             }
         }
     }

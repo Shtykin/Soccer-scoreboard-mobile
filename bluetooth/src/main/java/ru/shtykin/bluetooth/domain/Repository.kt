@@ -15,7 +15,7 @@ interface Repository {
     fun getBluetoothDeviceFlow() : Flow<BtDevice>
     fun getIsBluetoothDiscoveringFlow() : Flow<Unit?>
     suspend fun btConnect(btDevice: BtDevice): Boolean
-    fun btDisconnect()
+    suspend fun btDisconnect()
     fun getBluetoothStateFlow(): Flow<BluetoothState>
     fun getBluetoothState(): BluetoothState
     fun sendMsg(msg: String)
@@ -23,6 +23,7 @@ interface Repository {
     fun saveGame(game: Game)
     fun getGame(): Game
     fun getGameFlow(): Flow<Game>
+    suspend fun checkAndEmitBtState()
 
 
 }

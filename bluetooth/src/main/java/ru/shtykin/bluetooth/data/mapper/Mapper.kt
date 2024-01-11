@@ -8,7 +8,7 @@ class Mapper {
     @SuppressLint("MissingPermission")
     fun mapBluetoothDeviceToBTDevice(bluetoothDevice: BluetoothDevice) =
         BtDevice(
-            name = bluetoothDevice.name,
+            name = bluetoothDevice.name ?: bluetoothDevice.address,
             mac = bluetoothDevice.address
         )
 

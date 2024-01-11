@@ -35,7 +35,6 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.shtykin.bbs_mobile.navigation.AppNavGraph
 import ru.shtykin.bbs_mobile.navigation.Screen
-import ru.shtykin.soccerscoreboard.presentation.screens.bluetooth.BluetoothScreen
 import ru.shtykin.soccerscoreboard.presentation.screens.developer.DeveloperScreen
 import ru.shtykin.soccerscoreboard.presentation.screens.game.GameScreen
 import ru.shtykin.soccerscoreboard.presentation.screens.settings.SettingsScreen
@@ -47,6 +46,27 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var btLauncher: ActivityResultLauncher<Intent>
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
+
+    private val permissionList = when (Build.VERSION.SDK_INT) {
+        in Build.VERSION_CODES.BASE..Build.VERSION_CODES.R -> {
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        }
+        Build.VERSION_CODES.S -> {
+            arrayOf(
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        }
+        else -> {
+            arrayOf(
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.BLUETOOTH_SCAN
+            )
+        }
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,9 +104,11 @@ class MainActivity : ComponentActivity() {
                                                 is MenuItem.Game -> {
                                                     viewModel.gameScreenOpened()
                                                 }
+
                                                 is MenuItem.Settings -> {
                                                     viewModel.settingScreenOpened()
                                                 }
+
                                                 else -> {
 
                                                 }
@@ -114,13 +136,6 @@ class MainActivity : ComponentActivity() {
                             settingsScreenContent = {
                                 SettingsScreen(
                                     uiState = uiState,
-                                    onBluetoothClick = {
-                                        navHostController.navigate(Screen.Bluetooth.route) {
-//                                            popUpTo(Screen.Settings.route) {
-//                                                inclusive = true
-//                                            }
-                                        }
-                                    },
                                     onBluetoothOnClick = {
                                         btLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
                                     },
@@ -136,16 +151,13 @@ class MainActivity : ComponentActivity() {
                                     onSearchClick = {
                                         viewModel.startDiscovery()
                                     },
-                                    onSendMessageClick = {
-                                        viewModel.sendMessage(it)
-                                    },
                                     onColorPickedTeam = { team, color ->
                                         viewModel.changeTeamColor(team, color)
                                     },
                                     onTimeChanged = {
                                         viewModel.changeHalfTime(it)
                                     },
-                                    onTeamNameChanged = {team, name ->
+                                    onTeamNameChanged = { team, name ->
                                         viewModel.changeTeamName(team, name)
                                     }
                                 )
@@ -160,11 +172,7 @@ class MainActivity : ComponentActivity() {
                                     uiState = uiState,
                                 )
                             },
-                            bluetoothScreenContent = {
-                                BluetoothScreen(
-                                    uiState = uiState
-                                )
-                            },
+
                         )
                     }
 
@@ -200,21 +208,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     private fun launchBtPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            pLauncher.launch(
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            )
-        } else {
-            pLauncher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            )
-        }
+        pLauncher.launch(permissionList)
     }
 
     private fun checkPermissions() {
@@ -225,20 +221,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkBtPermissions(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.BLUETOOTH_CONNECT
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+        permissionList.forEach {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    it
+                ) != PackageManager.PERMISSION_GRANTED) return false
         }
+        return true
     }
 
     private fun openAppSettings() {

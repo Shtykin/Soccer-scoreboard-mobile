@@ -105,9 +105,10 @@ class RepositoryImpl(
         }
     }
 
-    override fun btDisconnect() {
+    override suspend fun btDisconnect() {
         try {
             mSocket?.close()
+            checkAndEmitBtState()
         } catch (ioe: IOException) {
 
         } catch (se: SecurityException) {
@@ -122,11 +123,7 @@ class RepositoryImpl(
     private suspend fun inputMessage() {
         val buffer = ByteArray(256)
         while(true) {
-            val btState = getBluetoothState()
-            if (btState != currentBtState) {
-                currentBtState = btState
-                bluetoothStateFlow.emit(currentBtState)
-            }
+            checkAndEmitBtState()
             try {
                 val length = mSocket?.inputStream?.read(buffer)
                 val msg = String(buffer, 0, length ?: 0)
@@ -147,6 +144,8 @@ class RepositoryImpl(
         }
     }
 
+
+
     override fun sendMsg(msg: String) {
         try {
             if( msg.isNotEmpty()) Log.e("DEBUG1", "output msg -> $msg")
@@ -166,4 +165,12 @@ class RepositoryImpl(
     }
 
     override fun getGameFlow() = gameFlow
+
+    override suspend fun checkAndEmitBtState() {
+        val btState = getBluetoothState()
+        if (btState != currentBtState) {
+            currentBtState = btState
+            bluetoothStateFlow.emit(currentBtState)
+        }
+    }
 }

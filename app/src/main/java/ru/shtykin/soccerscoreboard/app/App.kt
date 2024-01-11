@@ -19,8 +19,10 @@ class App: Application() {
         val filter1 = IntentFilter(BluetoothDevice.ACTION_FOUND)
         val filter2 = IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
         val filter3 = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        val filter4 = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         registerReceiver(bluetoothReceiver, filter1)
         registerReceiver(bluetoothReceiver, filter2)
         registerReceiver(bluetoothReceiver, filter3)
+        registerReceiver(bluetoothReceiver, filter4)
     }
 }
