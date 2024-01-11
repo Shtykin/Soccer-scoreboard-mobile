@@ -28,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.core.content.ContextCompat
@@ -130,8 +129,14 @@ class MainActivity : ComponentActivity() {
                                         viewModel.sendMessage(it)
                                     },
                                     onColorPickedTeam = { team, color ->
-                                        viewModel.colorPickedTeam(team, color)
+                                        viewModel.changeTeamColor(team, color)
                                     },
+                                    onTimeChanged = {
+                                        viewModel.changeHalfTime(it)
+                                    },
+                                    onTeamNameChanged = {team, name ->
+                                        viewModel.changeTeamName(team, name)
+                                    }
                                 )
                             },
                             gameScreenContent = {
@@ -148,7 +153,7 @@ class MainActivity : ComponentActivity() {
                                 BluetoothScreen(
                                     uiState = uiState
                                 )
-                            }
+                            },
                         )
                     }
 

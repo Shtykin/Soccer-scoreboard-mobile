@@ -141,7 +141,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun colorPickedTeam(team: Team, color: Color) {
+    fun changeTeamColor(team: Team, color: Color) {
         viewModelScope.launch(Dispatchers.IO) {
             val game = getGame()
             if (team == game.team1) {
@@ -159,7 +159,42 @@ class MainViewModel @Inject constructor(
                 }
             }
         }
+    }
 
+    fun changeTeamName(team: Team, name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val game = getGame()
+            if (team == game.team1) {
+                game.team1.name = name
+            } else if (team == game.team2) {
+                game.team2.name = name
+            }
+            saveGame(game)
+            withContext(Dispatchers.Main) {
+                val currentState = _uiState.value
+                if (currentState is ScreenState.SettingsScreen) {
+                    _uiState.value = currentState.copy(
+                        game = getGame()
+                    )
+                }
+            }
+        }
+    }
+
+    fun changeHalfTime(time: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val game = getGame()
+            game.halfTime = time
+            saveGame(game)
+            withContext(Dispatchers.Main) {
+                val currentState = _uiState.value
+                if (currentState is ScreenState.SettingsScreen) {
+                    _uiState.value = currentState.copy(
+                        game = getGame()
+                    )
+                }
+            }
+        }
     }
 
     fun sendMessage(text: String) = sendMessageUseCase.execute(text)

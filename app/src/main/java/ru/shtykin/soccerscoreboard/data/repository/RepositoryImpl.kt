@@ -10,8 +10,9 @@ class RepositoryImpl(
 ) : Repository {
 
     private var game = Game(
-        Team( "Команда 1", Color.Red),
-        Team( "Команда 2", Color.Blue)
+        team1 = Team( "Команда 1", Color.Red),
+        team2 = Team( "Команда 2", Color.Blue),
+        halfTime = 30 * 60
     )
 
     override fun saveGame(game: Game) {
