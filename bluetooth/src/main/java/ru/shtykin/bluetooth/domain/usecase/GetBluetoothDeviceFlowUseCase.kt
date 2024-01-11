@@ -1,6 +1,6 @@
 package ru.shtykin.bluetooth.domain.usecase
 
-import ru.shtykin.bluetooth.Repository
+import ru.shtykin.bluetooth.domain.Repository
 
 
 class GetBluetoothDeviceFlowUseCase (private val repository: Repository) {

@@ -80,6 +80,17 @@ class MainActivity : ComponentActivity() {
                                             navHostController.navigate(item.route) {
                                                 popUpTo(0)
                                             }
+                                            when (currentItem) {
+                                                is MenuItem.Game -> {
+                                                    viewModel.gameScreenOpened()
+                                                }
+                                                is MenuItem.Settings -> {
+                                                    viewModel.settingScreenOpened()
+                                                }
+                                                else -> {
+
+                                                }
+                                            }
                                         }
                                     },
                                     text = {

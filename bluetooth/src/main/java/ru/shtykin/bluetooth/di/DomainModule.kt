@@ -4,23 +4,32 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
-import ru.shtykin.bluetooth.Repository
+import ru.shtykin.bluetooth.domain.Repository
 import ru.shtykin.bluetooth.domain.usecase.BoundBluetoothDeviceUseCase
-import ru.shtykin.bluetooth.domain.usecase.CheckBluetoothStateUseCase
+import ru.shtykin.bluetooth.domain.usecase.GetBluetoothStateFlowUseCase
 import ru.shtykin.bluetooth.domain.usecase.ConnectBtDeviceUseCase
 import ru.shtykin.bluetooth.domain.usecase.DisconnectBtDeviceUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetBluetoothDeviceFlowUseCase
+import ru.shtykin.bluetooth.domain.usecase.GetBluetoothStateUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetBoundedBluetoothDevicesUseCase
+import ru.shtykin.bluetooth.domain.usecase.GetGameFlowUseCase
+import ru.shtykin.bluetooth.domain.usecase.GetGameUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetIsBluetoothDiscoveringFlowUseCase
+import ru.shtykin.bluetooth.domain.usecase.SaveGameUseCase
 import ru.shtykin.bluetooth.domain.usecase.SendMessageUseCase
 import ru.shtykin.bluetooth.domain.usecase.StartDiscoveryUseCase
 
 @Module
 @InstallIn(ViewModelComponent::class)
 class DomainModule {
+
     @Provides
-    fun provideCheckBluetoothStateUseCase(repository: Repository): CheckBluetoothStateUseCase =
-        CheckBluetoothStateUseCase(repository)
+    fun provideGetBluetoothStateUseCase(repository: Repository): GetBluetoothStateUseCase =
+        GetBluetoothStateUseCase(repository)
+
+    @Provides
+    fun provideGetBluetoothStateFlowUseCase(repository: Repository): GetBluetoothStateFlowUseCase =
+        GetBluetoothStateFlowUseCase(repository)
 
     @Provides
     fun provideGetBoundedBluetoothDevicesUseCase(repository: Repository): GetBoundedBluetoothDevicesUseCase =
@@ -53,4 +62,16 @@ class DomainModule {
     @Provides
     fun provideSendMessageUseCase(repository: Repository): SendMessageUseCase =
         SendMessageUseCase(repository)
+
+    @Provides
+    fun provideGetGameUseCase(repository: Repository): GetGameUseCase =
+        GetGameUseCase(repository)
+
+    @Provides
+    fun provideSaveGameUseCase(repository: Repository): SaveGameUseCase =
+        SaveGameUseCase(repository)
+
+    @Provides
+    fun provideGetGameFlowUseCase(repository: Repository): GetGameFlowUseCase =
+        GetGameFlowUseCase(repository)
 }

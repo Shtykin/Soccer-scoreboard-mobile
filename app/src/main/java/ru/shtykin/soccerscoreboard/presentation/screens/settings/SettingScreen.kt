@@ -20,10 +20,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.BluetoothConnected
+import androidx.compose.material.icons.filled.BluetoothDisabled
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -52,8 +59,9 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.DialogProperties
 import io.mhssn.colorpicker.ColorPickerDialog
 import io.mhssn.colorpicker.ColorPickerType
+import ru.shtykin.bluetooth.domain.entity.BluetoothState
 import ru.shtykin.bluetooth.domain.entity.BtDevice
-import ru.shtykin.soccerscoreboard.domain.entity.Team
+import ru.shtykin.bluetooth.domain.entity.Team
 import ru.shtykin.soccerscoreboard.presentation.state.ScreenState
 
 @Composable
@@ -75,11 +83,13 @@ fun SettingsScreen(
     val onlineDevices = (uiState as? ScreenState.SettingsScreen)?.onlineDevices ?: emptyList()
     val isDiscovering = (uiState as? ScreenState.SettingsScreen)?.isDiscovering ?: false
     val game = (uiState as? ScreenState.SettingsScreen)?.game
+    val bluetoothState = (uiState as? ScreenState.SettingsScreen)?.bluetoothState
 
 
     var minutes by remember { mutableStateOf(0) }
     var seconds by remember { mutableStateOf(0) }
     var showTimePickerDialog by remember { mutableStateOf(false) }
+    var showBluetoothDialog by remember { mutableStateOf(false) }
 
 
     TimePickerDialog(
@@ -93,33 +103,65 @@ fun SettingsScreen(
         onPickSeconds = { seconds = it }
     )
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onBluetoothClick?.invoke() },
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Состояние Bluetooth: сопряжено")
-            Icon(imageVector = Icons.Default.Bluetooth, contentDescription = null)
-        }
+    BluetoothDialog(
+        show = showBluetoothDialog,
+        bluetoothState = bluetoothState,
+        onDismissRequest = { showBluetoothDialog = false },
+        boundedDevices = boundedDevices,
+        onlineDevices = onlineDevices,
+        isDiscovering = isDiscovering,
+        onBluetoothOnClick = onBluetoothOnClick,
+        onBoundDeviceClick = { onBoundDeviceClick?.invoke(it) },
+        onConnectDeviceClick = { onConnectDeviceClick?.invoke(it) },
+        onSearchClick = onSearchClick,
+        onDisconnectClick = onDisconnectClick
+    )
 
+    Column(modifier = Modifier.padding(16.dp)) {
+
+        val bluetoothIcon = when (bluetoothState) {
+            BluetoothState.CONNECTED -> Icons.Default.BluetoothConnected
+            BluetoothState.ENABLED -> Icons.Default.Bluetooth
+            else -> Icons.Default.BluetoothDisabled
+        }
+        val colorBluetooth = when (bluetoothState) {
+            BluetoothState.CONNECTED -> Color.Green
+            BluetoothState.ENABLED -> Color.Blue
+            else -> Color.Gray
+        }
+        val textBluetooth = when (bluetoothState) {
+            BluetoothState.CONNECTED -> "Connected"
+            BluetoothState.ENABLED -> "Disconnected"
+            else -> "Disabled"
+        }
+        ItemSetting(
+            icon = bluetoothIcon,
+            title = "Bluetooth",
+            value = textBluetooth,
+            color = colorBluetooth,
+            onClickItem = { showBluetoothDialog = true }
+        )
 
 
         Spacer(modifier = Modifier.height(24.dp))
 
         game?.let { game ->
-            Text(
-                "Время тайма: ${game.halfTime.secondsToFormatTime()}",
-                modifier = Modifier.clickable { showTimePickerDialog = true }
+            ItemSetting(
+                icon = Icons.Default.AccessTime,
+                title = "Время тайма",
+                value = game.halfTime.secondsToFormatTime(),
+                color = MaterialTheme.colorScheme.primary,
+                onClickItem = { showTimePickerDialog = true }
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
             Row {
                 TeamSettings(
                     team = game.team1,
                     onColorPicked = { color ->
                         onColorPickedTeam?.invoke(game.team1, color)
                     },
-                    onNameChanged = {newName ->
+                    onNameChanged = { newName ->
                         onTeamNameChanged?.invoke(game.team1, newName)
                     }
                 )
@@ -128,7 +170,7 @@ fun SettingsScreen(
                     onColorPicked = { color ->
                         onColorPickedTeam?.invoke(game.team2, color)
                     },
-                    onNameChanged = {newName ->
+                    onNameChanged = { newName ->
                         onTeamNameChanged?.invoke(game.team2, newName)
                     }
                 )
@@ -136,41 +178,200 @@ fun SettingsScreen(
         }
 
 
-        //цвета, время тайма, название команд
-//        Spacer(modifier = Modifier.height(24.dp))
-//        Button(onClick = { onBluetoothOnClick?.invoke() }) {
-//            Text("Enable BT")
-//        }
-//        Button(onClick = { onSearchClick?.invoke() }) {
-//            Text("Search")
-//        }
-//        Button(onClick = { onDisconnectClick?.invoke() }) {
-//            Text("Disconnect")
-//        }
-//        Button(onClick = { onSendMessageClick?.invoke("H") }) {
-//            Text(text = "Send")
-//        }
-//        LazyColumn {
-//            items(boundedDevices) {
-//                Text(
-//                    it.name,
-//                    modifier = Modifier.clickable { onConnectDeviceClick?.invoke(it) },
-//                    color = Color.Green
-//                )
-//            }
-//        }
-//
-//        LazyColumn {
-//            items(onlineDevices) {
-//                Text(
-//                    it.name,
-//                    modifier = Modifier.clickable { onBoundDeviceClick?.invoke(it) },
-//                    color = Color.Blue
-//                )
-//            }
-//        }
-//        if (isDiscovering) CircularProgressIndicator()
+    }
+}
 
+@Composable
+fun ItemSetting(
+    icon: ImageVector,
+    title: String,
+    value: String,
+    color: Color,
+    onClickItem: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClickItem.invoke() },
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = title,
+            fontSize = 18.sp
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = value,
+            fontSize = 18.sp
+        )
+    }
+}
+
+@Composable
+fun BluetoothDialog(
+    show: Boolean,
+    modifier: Modifier = Modifier,
+    bluetoothState: BluetoothState?,
+    onDismissRequest: () -> Unit,
+    boundedDevices: List<BtDevice>,
+    onlineDevices: List<BtDevice>,
+    isDiscovering: Boolean,
+    onBluetoothOnClick: (() -> Unit)?,
+    onBoundDeviceClick: ((BtDevice) -> Unit)?,
+    onConnectDeviceClick: ((BtDevice) -> Unit)?,
+    onSearchClick: (() -> Unit)?,
+    onDisconnectClick: (() -> Unit)?,
+) {
+
+    if (show) {
+        AlertDialog(
+            onDismissRequest = {
+                onDismissRequest.invoke()
+            },
+            title = {
+                Text(
+                    text = "Устройства Bluetooth",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            },
+            text = {
+                when (bluetoothState) {
+                    BluetoothState.DISABLED -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(
+                                onClick = {
+                                    onBluetoothOnClick?.invoke()
+                                    onDismissRequest.invoke()
+                                }
+                            ) {
+                                Text("Включить Bluetooth")
+                            }
+                        }
+                    }
+                    BluetoothState.CONNECTED -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Button(
+                                onClick = {
+                                    onDisconnectClick?.invoke()
+                                    onDismissRequest.invoke()
+                                }
+                            ) {
+                                Text("Разорвать соединение")
+                            }
+                        }
+                    }
+                    else -> {
+                        Column {
+                            LazyColumn {
+                                if (boundedDevices.isNotEmpty()) {
+                                    item {
+                                        Text(
+                                            modifier = Modifier.padding(bottom = 8.dp),
+                                            text = "Сопряженные устройства:",
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                                items(boundedDevices) {
+                                    BluetoothDeviceItemCard(
+                                        onItemClick = {
+                                            onConnectDeviceClick?.invoke(it)
+                                            onDismissRequest.invoke()
+                                        },
+                                        name = it.name,
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                                    )
+                                }
+                                if (onlineDevices.isNotEmpty()) {
+                                    item {
+                                        Text(
+                                            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                                            text = "Найденные устройства:",
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                                items(onlineDevices) {
+                                    BluetoothDeviceItemCard(
+                                        onItemClick = { onBoundDeviceClick?.invoke(it) },
+                                        name = it.name,
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                    )
+                                }
+                            }
+                            if (isDiscovering) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Button(
+                                    onClick = { onSearchClick?.invoke() }
+                                ) {
+                                    Text("Поиск устройств")
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+
+//                Button(onClick = { onDisconnectClick?.invoke() }) {
+//                    Text("Disconnect")
+//                }
+//                Button(onClick = { onSendMessageClick?.invoke("H") }) {
+//                    Text(text = "Send")
+//                }
+
+
+            },
+            confirmButton = {},
+        )
+    }
+}
+
+@Composable
+fun BluetoothDeviceItemCard(
+    onItemClick: () -> Unit,
+    name: String,
+    containerColor: Color
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp)
+            .clickable { onItemClick.invoke() },
+        colors = CardDefaults.cardColors(containerColor = containerColor)
+    ) {
+        Text(
+            text = name,
+            fontSize = 15.sp,
+            modifier = Modifier.padding(8.dp)
+        )
     }
 }
 

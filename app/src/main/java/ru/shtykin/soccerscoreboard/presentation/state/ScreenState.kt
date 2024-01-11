@@ -1,12 +1,14 @@
 package ru.shtykin.soccerscoreboard.presentation.state
 
+import ru.shtykin.bluetooth.domain.entity.BluetoothState
 import ru.shtykin.bluetooth.domain.entity.BtDevice
-import ru.shtykin.soccerscoreboard.domain.entity.Game
+import ru.shtykin.bluetooth.domain.entity.Game
 
 
 sealed class ScreenState {
 
     data class SettingsScreen(
+        val bluetoothState: BluetoothState,
         val game: Game,
         val boundedDevices: List<BtDevice>,
         val onlineDevices: List<BtDevice>,
@@ -14,7 +16,7 @@ sealed class ScreenState {
     ) : ScreenState()
 
     data class GameScreen(
-        val temp: String,
+        val game: Game,
     ) : ScreenState()
 
     data class DeveloperScreen(

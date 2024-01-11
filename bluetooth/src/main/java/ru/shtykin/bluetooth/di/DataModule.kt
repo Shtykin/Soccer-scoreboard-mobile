@@ -9,7 +9,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import ru.shtykin.bluetooth.Repository
+import ru.shtykin.bluetooth.domain.Repository
 import ru.shtykin.bluetooth.data.mapper.Mapper
 import ru.shtykin.bluetooth.data.repository.RepositoryImpl
 import javax.inject.Singleton

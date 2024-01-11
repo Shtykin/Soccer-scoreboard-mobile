@@ -1,7 +1,6 @@
-package ru.shtykin.soccerscoreboard.domain.entity
+package ru.shtykin.bluetooth.domain.entity
 
 import androidx.compose.ui.graphics.Color
-import kotlin.random.Random
 
 data class Team(
     var name: String,
