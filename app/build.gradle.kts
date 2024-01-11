@@ -63,7 +63,8 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material3:material3:1.2.0-beta01")
+    implementation("androidx.compose.foundation:foundation")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -88,6 +89,11 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.44")
 
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.22"))
+
+    //color picker
+    implementation("io.mhssn:colorpicker:1.0.0")
+
+    implementation(project(":bluetooth"))
 }
 
 kapt {

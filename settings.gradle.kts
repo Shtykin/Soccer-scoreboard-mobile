@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Soccer scoreboard"
 include(":app")
- 
+include(":bluetooth")
