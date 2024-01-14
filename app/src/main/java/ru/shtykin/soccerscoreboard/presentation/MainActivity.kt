@@ -34,10 +34,10 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.shtykin.bbs_mobile.navigation.AppNavGraph
-import ru.shtykin.bbs_mobile.navigation.Screen
 import ru.shtykin.soccerscoreboard.presentation.screens.developer.DeveloperScreen
 import ru.shtykin.soccerscoreboard.presentation.screens.game.GameScreen
 import ru.shtykin.soccerscoreboard.presentation.screens.settings.SettingsScreen
+import ru.shtykin.soccerscoreboard.presentation.state.ScreenState
 import ru.shtykin.soccerscoreboard.presentation.ui.theme.SoccerScoreboardTheme
 
 @AndroidEntryPoint
@@ -76,14 +76,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navHostController = rememberNavController()
             val uiState by viewModel.uiState
-            val startScreenRoute = Screen.Settings.route
-//            var currentItem: MenuItem = MenuItem.Settings
+            var currentItem: MenuItem by remember { mutableStateOf(
+                when (uiState) {
+                    is ScreenState.SettingsScreen -> MenuItem.Settings
+                    is ScreenState.GameScreen -> MenuItem.Game
+                    is ScreenState.DeveloperScreen -> MenuItem.Developer
+                }
+            ) }
+            val startScreenRoute = currentItem.route
             SoccerScoreboardTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    var currentItem: MenuItem by remember { mutableStateOf(MenuItem.Settings) }
                     val itemList = listOf(
                         MenuItem.Settings,
                         MenuItem.Game,

@@ -52,12 +52,8 @@ class MainViewModel @Inject constructor(
 
     private val _uiState =
         mutableStateOf<ScreenState>(
-            ScreenState.SettingsScreen(
-                bluetoothState = getBluetoothState(),
-                game = getGame(),
-                boundedDevices = getBondedDevices(),
-                onlineDevices = emptyList(),
-                isDiscovering = false
+            ScreenState.GameScreen(
+                game = getGame()
             )
         )
 

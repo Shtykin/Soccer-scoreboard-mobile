@@ -22,8 +22,4 @@ sealed class ScreenState {
     data class DeveloperScreen(
         val temp: String,
     ) : ScreenState()
-
-    data class BluetoothScreen(
-        val temp: String,
-    ) : ScreenState()
 }
