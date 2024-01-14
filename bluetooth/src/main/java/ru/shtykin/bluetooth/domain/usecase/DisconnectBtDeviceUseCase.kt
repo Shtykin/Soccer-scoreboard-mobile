@@ -1,10 +1,9 @@
 package ru.shtykin.bluetooth.domain.usecase
 
-import ru.shtykin.bluetooth.Repository
-import ru.shtykin.bluetooth.domain.entity.BtDevice
+import ru.shtykin.bluetooth.domain.Repository
 
 
 class DisconnectBtDeviceUseCase (private val repository: Repository) {
-    fun execute() =
+    suspend fun execute() =
         repository.btDisconnect()
 }
