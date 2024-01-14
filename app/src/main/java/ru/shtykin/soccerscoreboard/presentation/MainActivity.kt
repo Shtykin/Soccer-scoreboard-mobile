@@ -114,8 +114,8 @@ class MainActivity : ComponentActivity() {
                                                     viewModel.settingScreenOpened()
                                                 }
 
-                                                else -> {
-
+                                                is MenuItem.Developer -> {
+                                                    viewModel.developerScreenOpened()
                                                 }
                                             }
                                         }
@@ -175,6 +175,9 @@ class MainActivity : ComponentActivity() {
                             developerScreenContent = {
                                 DeveloperScreen(
                                     uiState = uiState,
+                                    onParamChange = { param, value ->
+                                        viewModel.changeParamValue(param, value)
+                                    }
                                 )
                             },
 

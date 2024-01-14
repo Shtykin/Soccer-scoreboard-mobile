@@ -63,6 +63,7 @@ import ru.shtykin.bluetooth.domain.entity.BluetoothState
 import ru.shtykin.bluetooth.domain.entity.BtDevice
 import ru.shtykin.bluetooth.domain.entity.Team
 import ru.shtykin.soccerscoreboard.presentation.state.ScreenState
+import ru.shtykin.soccerscoreboard.presentation.ui.theme.changaFontFamily
 
 @Composable
 fun SettingsScreen(
@@ -191,21 +192,24 @@ fun ItemSetting(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClickItem.invoke() },
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = color
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = title,
-            fontSize = 18.sp
+            fontSize = 20.sp,
+            fontFamily = changaFontFamily,
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = value,
-            fontSize = 18.sp
+            fontSize = 20.sp,
+            fontFamily = changaFontFamily,
         )
     }
 }
@@ -320,7 +324,6 @@ fun BluetoothDialog(
                                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                                 }
                             }
-
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -335,17 +338,6 @@ fun BluetoothDialog(
                         }
                     }
                 }
-
-
-
-//                Button(onClick = { onDisconnectClick?.invoke() }) {
-//                    Text("Disconnect")
-//                }
-//                Button(onClick = { onSendMessageClick?.invoke("H") }) {
-//                    Text(text = "Send")
-//                }
-
-
             },
             confirmButton = {},
         )
@@ -367,8 +359,9 @@ fun BluetoothDeviceItemCard(
     ) {
         Text(
             text = name,
+            modifier = Modifier.padding(8.dp),
             fontSize = 15.sp,
-            modifier = Modifier.padding(8.dp)
+            fontFamily = changaFontFamily,
         )
     }
 }
@@ -392,7 +385,7 @@ fun TeamNameDialog(
             },
             title = {
                 Text(
-                    text = "Установка названия команды",
+                    text = "Название команды",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -450,7 +443,8 @@ fun RowScope.TeamSettings(
             modifier = Modifier.clickable { showTeamNameDialog = true },
             text = team.name,
             fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            fontFamily = changaFontFamily,
         )
     }
 
@@ -486,22 +480,13 @@ fun TimePickerDialog(
     onSaveClick: () -> Unit,
     onPickMinutes: (Int) -> Unit,
     onPickSeconds: (Int) -> Unit,
-
     ) {
-//    var showDialog by remember(show) {
-//        mutableStateOf(show)
-//    }
-
-
     if (show) {
         AlertDialog(
-            onDismissRequest = {
-                onDismissRequest.invoke()
-//                showDialog = false
-            },
+            onDismissRequest = { onDismissRequest.invoke() },
             title = {
                 Text(
-                    text = "Установка времени тайма",
+                    text = "Время тайма",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -529,21 +514,14 @@ fun TimePickerDialog(
                 }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    onDismissRequest.invoke()
-//                    showDialog = false
-                }) {
+                TextButton(onClick = { onDismissRequest.invoke() }) {
                     Text(text = "Отмена")
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    onSaveClick.invoke()
-//                    showDialog = false
-                }) {
+                TextButton(onClick = { onSaveClick.invoke() }) {
                     Text(text = "Сохранить")
                 }
-
             },
         )
     }

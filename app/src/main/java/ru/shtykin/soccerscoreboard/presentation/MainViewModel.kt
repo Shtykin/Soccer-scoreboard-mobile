@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.shtykin.bluetooth.domain.entity.BtDevice
+import ru.shtykin.bluetooth.domain.entity.DevParam
 import ru.shtykin.bluetooth.domain.entity.Game
 import ru.shtykin.bluetooth.domain.entity.Team
 import ru.shtykin.bluetooth.domain.usecase.BoundBluetoothDeviceUseCase
@@ -63,7 +64,6 @@ class MainViewModel @Inject constructor(
     private val listDevices = mutableListOf<BtDevice>()
 
     init {
-//        Log.e("DEBUG1", "bt -> ${getBluetoothStateFlowUseCase.execute()}")
 
         viewModelScope.launch(Dispatchers.IO) {
             getGameFlow().collect {game ->
@@ -224,6 +224,10 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun changeParamValue(param: DevParam, value: String) {
+
+    }
+
 
     fun gameScreenOpened() {
         _uiState.value = ScreenState.GameScreen(
@@ -244,6 +248,30 @@ class MainViewModel @Inject constructor(
             boundedDevices = getBondedDevices(),
             onlineDevices = listDevices.toList(),
             isDiscovering = false
+        )
+    }
+
+    fun developerScreenOpened() {
+        _uiState.value = ScreenState.DeveloperScreen(
+            devParams = listOf(
+                DevParam("Время 1", "12:34"),
+                DevParam("Время 2", "32:34"),
+                DevParam("Время 3", "22:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+                DevParam("Время 4", "55:34"),
+            )
         )
     }
 
