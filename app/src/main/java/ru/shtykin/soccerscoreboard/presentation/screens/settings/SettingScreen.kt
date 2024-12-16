@@ -1,5 +1,6 @@
 package ru.shtykin.soccerscoreboard.presentation.screens.settings
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -19,11 +20,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BluetoothConnected
 import androidx.compose.material.icons.filled.BluetoothDisabled
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -32,11 +36,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +57,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -62,12 +71,14 @@ import io.mhssn.colorpicker.ColorPickerType
 import ru.shtykin.bluetooth.domain.entity.BluetoothState
 import ru.shtykin.bluetooth.domain.entity.BtDevice
 import ru.shtykin.bluetooth.domain.entity.Team
+import ru.shtykin.soccerscoreboard.presentation.MainViewModel
 import ru.shtykin.soccerscoreboard.presentation.state.ScreenState
 import ru.shtykin.soccerscoreboard.presentation.ui.theme.changaFontFamily
 
 @Composable
 fun SettingsScreen(
     uiState: ScreenState,
+    viewModel: MainViewModel,
     onBluetoothOnClick: (() -> Unit)?,
     onBoundDeviceClick: ((BtDevice) -> Unit)?,
     onConnectDeviceClick: ((BtDevice) -> Unit)?,
@@ -90,6 +101,15 @@ fun SettingsScreen(
     var showTimePickerDialog by remember { mutableStateOf(false) }
     var showBluetoothDialog by remember { mutableStateOf(false) }
 
+    val msg by viewModel.msg.collectAsState()
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+
+    val control by viewModel.responseControl.collectAsState()
+    val settings by viewModel.responseSettings.collectAsState()
+    val data by viewModel.responseData.collectAsState()
+
+    val isWriteLogs by viewModel.isWriteLogs.collectAsState()
 
     TimePickerDialog(
         show = showTimePickerDialog,
@@ -142,40 +162,96 @@ fun SettingsScreen(
         )
 
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         game?.let { game ->
             ItemSetting(
                 icon = Icons.Default.AccessTime,
                 title = "Время тайма",
-                value = game.halfTime.secondsToFormatTime(),
+                value = data.fullTime.secondsToFormatTime(),
                 color = MaterialTheme.colorScheme.primary,
                 onClickItem = { showTimePickerDialog = true }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            ItemSetting(
+                icon = Icons.Default.Group,
+                title = "Стороны комманд",
+                value = if (!control.reverse) "1 | 2" else "2 | 1",
+                color = MaterialTheme.colorScheme.primary,
+                onClickItem = { viewModel.changeTeamAreas() }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
             Row {
-                TeamSettings(
-                    team = game.team1,
-                    onColorPicked = { color ->
-                        onColorPickedTeam?.invoke(game.team1, color)
-                    },
-                    onNameChanged = { newName ->
-                        onTeamNameChanged?.invoke(game.team1, newName)
-                    }
-                )
-                TeamSettings(
-                    team = game.team2,
-                    onColorPicked = { color ->
-                        onColorPickedTeam?.invoke(game.team2, color)
-                    },
-                    onNameChanged = { newName ->
-                        onTeamNameChanged?.invoke(game.team2, newName)
-                    }
-                )
+                if (!control.reverse) {
+                    TeamSettings(
+                        name = data.nameT1.ifEmpty { "Команда 1" },
+                        color = if (data.colorT1 == 0) 0xFFFF0000 else data.colorT1.toLong(),
+                        onColorPicked = { viewModel.setColorT1(it) },
+                        onNameChanged = { viewModel.setNameT1(it) }
+                    )
+                    TeamSettings(
+                        name = data.nameT2.ifEmpty { "Команда 2" },
+                        color = if (data.colorT1 == 0) 0xFF0000FF else data.colorT2.toLong(),
+                        onColorPicked = { viewModel.setColorT2(it) },
+                        onNameChanged = { viewModel.setNameT2(it) }
+                    )
+                } else {
+                    TeamSettings(
+                        name = data.nameT2.ifEmpty { "Команда 2" },
+                        color = if (data.colorT1 == 0) 0xFF0000FF else data.colorT2.toLong(),
+                        onColorPicked = { viewModel.setColorT2(it) },
+                        onNameChanged = { viewModel.setNameT2(it) }
+                    )
+                    TeamSettings(
+                        name = data.nameT1.ifEmpty { "Команда 1" },
+                        color = if (data.colorT1 == 0) 0xFFFF0000 else data.colorT1.toLong(),
+                        onColorPicked = { viewModel.setColorT1(it) },
+                        onNameChanged = { viewModel.setNameT1(it) }
+                    )
+                }
+
             }
         }
-
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Button(
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .weight(1f),
+                onClick = {
+                clipboardManager.setText(AnnotatedString(msg))
+                Toast.makeText(context, "Copied", Toast.LENGTH_LONG).show()
+            }) {
+                Text(text = "copy logs")
+            }
+            Button(
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .weight(1f),
+                onClick = { viewModel.clearLogs() }) {
+                Text(text = "clear logs")
+            }
+            IconToggleButton(
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .weight(1f),
+                checked = isWriteLogs,
+                onCheckedChange = {viewModel.setIsWriteLogs(it)}
+            ) {
+                Text(text = if (isWriteLogs) "logs: on" else "logs: off")
+            }
+        }
+        Text(
+            text = msg,
+            fontSize = 13.sp,
+            fontFamily = changaFontFamily,
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+        )
 
     }
 }
@@ -415,7 +491,8 @@ fun TeamNameDialog(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RowScope.TeamSettings(
-    team: Team,
+    name: String,
+    color: Long,
     onColorPicked: ((Color) -> Unit)?,
     onNameChanged: ((String) -> Unit)?,
 ) {
@@ -435,13 +512,13 @@ fun RowScope.TeamSettings(
                 imageVector = Icons.Default.Groups,
                 modifier = Modifier.size(64.dp),
                 contentDescription = null,
-                tint = team.color
+                tint = Color(color)
             )
         }
 
         Text(
             modifier = Modifier.clickable { showTeamNameDialog = true },
-            text = team.name,
+            text = name,
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             fontFamily = changaFontFamily,
@@ -462,7 +539,7 @@ fun RowScope.TeamSettings(
     )
     TeamNameDialog(
         show = showTeamNameDialog,
-        name = team.name,
+        name = name,
         onDismissRequest = { showTeamNameDialog = false },
         onSaveClick = {
             showTeamNameDialog = false

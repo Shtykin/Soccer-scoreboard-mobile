@@ -96,6 +96,9 @@ dependencies {
     //fonts
     implementation("androidx.compose.ui:ui-text-google-fonts:1.5.4")
 
+    //serializer
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
     implementation(project(":bluetooth"))
 }
 

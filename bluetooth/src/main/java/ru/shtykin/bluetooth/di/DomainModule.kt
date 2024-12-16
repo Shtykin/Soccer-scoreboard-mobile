@@ -12,9 +12,13 @@ import ru.shtykin.bluetooth.domain.usecase.DisconnectBtDeviceUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetBluetoothDeviceFlowUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetBluetoothStateUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetBoundedBluetoothDevicesUseCase
+import ru.shtykin.bluetooth.domain.usecase.GetControlFlowUseCase
+import ru.shtykin.bluetooth.domain.usecase.GetDataFlowUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetGameFlowUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetGameUseCase
 import ru.shtykin.bluetooth.domain.usecase.GetIsBluetoothDiscoveringFlowUseCase
+import ru.shtykin.bluetooth.domain.usecase.GetRawMsgFlowUseCase
+import ru.shtykin.bluetooth.domain.usecase.GetSettingsFlowUseCase
 import ru.shtykin.bluetooth.domain.usecase.SaveGameUseCase
 import ru.shtykin.bluetooth.domain.usecase.SendMessageUseCase
 import ru.shtykin.bluetooth.domain.usecase.StartDiscoveryUseCase
@@ -74,4 +78,20 @@ class DomainModule {
     @Provides
     fun provideGetGameFlowUseCase(repository: Repository): GetGameFlowUseCase =
         GetGameFlowUseCase(repository)
+
+    @Provides
+    fun provideGetRawMsgFlowUseCase(repository: Repository): GetRawMsgFlowUseCase =
+        GetRawMsgFlowUseCase(repository)
+
+    @Provides
+    fun provideGetControlFlowUseCase(repository: Repository): GetControlFlowUseCase =
+        GetControlFlowUseCase(repository)
+
+    @Provides
+    fun provideGetDataFlowUseCase(repository: Repository): GetDataFlowUseCase =
+        GetDataFlowUseCase(repository)
+
+    @Provides
+    fun provideGetSettingsFlowUseCase(repository: Repository): GetSettingsFlowUseCase =
+        GetSettingsFlowUseCase(repository)
 }

@@ -141,6 +141,7 @@ class MainActivity : ComponentActivity() {
                             settingsScreenContent = {
                                 SettingsScreen(
                                     uiState = uiState,
+                                    viewModel = viewModel,
                                     onBluetoothOnClick = {
                                         btLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
                                     },
@@ -170,11 +171,13 @@ class MainActivity : ComponentActivity() {
                             gameScreenContent = {
                                 GameScreen(
                                     uiState = uiState,
+                                    viewModel = viewModel
                                 )
                             },
                             developerScreenContent = {
                                 DeveloperScreen(
                                     uiState = uiState,
+                                    viewModel = viewModel,
                                     onParamChange = { param, value ->
                                         viewModel.changeParamValue(param, value)
                                     }

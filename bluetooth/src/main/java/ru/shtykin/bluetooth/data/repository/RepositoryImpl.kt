@@ -7,19 +7,34 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.util.Log
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
-import ru.shtykin.bluetooth.domain.Repository
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import ru.shtykin.bluetooth.data.mapper.Mapper
+import ru.shtykin.bluetooth.domain.Repository
 import ru.shtykin.bluetooth.domain.entity.BluetoothState
 import ru.shtykin.bluetooth.domain.entity.BtDevice
+import ru.shtykin.bluetooth.domain.entity.request.RequestControl
 import ru.shtykin.bluetooth.domain.entity.Game
+import ru.shtykin.bluetooth.domain.entity.request.RequestMessageControl
+import ru.shtykin.bluetooth.domain.entity.request.RequestMessageData
+import ru.shtykin.bluetooth.domain.entity.request.RequestMessageSettings
+import ru.shtykin.bluetooth.domain.entity.response.ResponseSettings
 import ru.shtykin.bluetooth.domain.entity.Team
+import ru.shtykin.bluetooth.domain.entity.response.ResponseControl
+import ru.shtykin.bluetooth.domain.entity.response.ResponseData
+import ru.shtykin.bluetooth.domain.entity.response.ResponseMessageControl
+import ru.shtykin.bluetooth.domain.entity.response.ResponseMessageData
+import ru.shtykin.bluetooth.domain.entity.response.ResponseMessageSettings
 import java.io.IOException
 import java.util.UUID
 
+@OptIn(DelicateCoroutinesApi::class)
 class RepositoryImpl(
     private val mapper: Mapper,
     private val appContext: Context,
@@ -31,8 +46,24 @@ class RepositoryImpl(
     private var isBluetoothDiscoveringFlow = MutableSharedFlow<Unit?>()
     private var bluetoothStateFlow = MutableSharedFlow<BluetoothState>()
     private var gameFlow = MutableSharedFlow<Game>()
+    private var rawMsgFlow = MutableSharedFlow<String>()
     private var currentBtState = getBluetoothState()
+    private var responseControlFlow = MutableSharedFlow<ResponseControl>()
+    private var responseSettingsFlow = MutableSharedFlow<ResponseSettings>()
+    private var responseDataFlow = MutableSharedFlow<ResponseData>()
     var mSocket: BluetoothSocket? = null
+
+
+    val scope = GlobalScope
+//    init {
+//        scope.launch {
+//            while (true) {
+//                rawMsgFlow.emit("123")
+//                delay(1000)
+//            }
+//
+//        }
+//    }
 
 
     private var game = Game(
@@ -126,15 +157,38 @@ class RepositoryImpl(
             checkAndEmitBtState()
             try {
                 val length = mSocket?.inputStream?.read(buffer)
-                val msg = String(buffer, 0, length ?: 0)
+                val msg = String(buffer, 0, length ?: 0).replace("\n", "").replace("null", "")
                 if( msg.isNotEmpty()) {
+                    rawMsgFlow.emit("<- $msg")
                     try {
-                        val time = msg.filter { it.isDigit() }.toInt()
-                        game = game.copy(currentTime = time)
-                        gameFlow.emit(game)
-                        Log.e("DEBUG1", "input msg -> $msg")
+                        if (msg.contains("control")) {
+                            val control = Json.decodeFromString<ResponseMessageControl>(msg)
+                            rawMsgFlow.emit("control -> $control")
+                            responseControlFlow.emit(control.responseControl)
+                        }
                     } catch (e: Exception) {
                         Log.e("DEBUG1", "Exception -> ${e.message}")
+                        rawMsgFlow.emit("control exception -> ${e.message}")
+                    }
+                    try {
+                        if (msg.contains("settings")) {
+                            val settings = Json.decodeFromString<ResponseMessageSettings>(msg)
+                            rawMsgFlow.emit("settings -> $settings")
+                            responseSettingsFlow.emit(settings.responseSettings)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("DEBUG1", "Exception -> ${e.message}")
+                        rawMsgFlow.emit("settings exception -> ${e.message}")
+                    }
+                    try {
+                        if (msg.contains("data")) {
+                            val data = Json.decodeFromString<ResponseMessageData>(msg)
+                            rawMsgFlow.emit("data -> $data")
+                            responseDataFlow.emit(data.responseData)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("DEBUG1", "Exception -> ${e.message}")
+                        rawMsgFlow.emit("data exception -> ${e.message}")
                     }
                 }
             } catch (e: Exception) {
@@ -149,7 +203,8 @@ class RepositoryImpl(
     override fun sendMsg(msg: String) {
         try {
             if( msg.isNotEmpty()) Log.e("DEBUG1", "output msg -> $msg")
-            mSocket?.outputStream?.write(("$msg\n").toByteArray())
+            mSocket?.outputStream?.write(("$msg\n\n").toByteArray())
+            scope.launch { rawMsgFlow.emit("-> $msg\n") }
         } catch (e: Exception) {
             Log.e("DEBUG1", "sendMsg -> ${e.message}")
         }
@@ -165,6 +220,14 @@ class RepositoryImpl(
     }
 
     override fun getGameFlow() = gameFlow
+
+    override fun getRawMsgFlow(): Flow<String> = rawMsgFlow
+
+    override fun getControlFlow(): Flow<ResponseControl> = responseControlFlow
+
+    override fun getSettingsFlow(): Flow<ResponseSettings> = responseSettingsFlow
+
+    override fun getDataFlow(): Flow<ResponseData> = responseDataFlow
 
     override suspend fun checkAndEmitBtState() {
         val btState = getBluetoothState()
